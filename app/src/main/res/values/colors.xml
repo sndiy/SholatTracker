@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="bg">#080c10</color>
+    <color name="surface">#0f1419</color>
+    <color name="surface2">#161d26</color>
+    <color name="surface3">#1c2535</color>
+    <color name="border">#1e2a38</color>
+    <color name="border2">#253040</color>
+
+    <color name="gold">#c9a84c</color>
+    <color name="gold_soft">#e2c97e</color>
+    <color name="gold_dim">#1Ac9a84c</color>
+    <color name="gold_border">#44c9a84c</color>
+
+    <color name="green">#3dba68</color>
+    <color name="green_dim">#1A3dba68</color>
+    <color name="green_border">#4D3dba68</color>
+    <color name="green_text">#a8eccb</color>
+
+    <color name="text_primary">#e8edf3</color>
+    <color name="text_secondary">#7a8694</color>
+    <color name="text_muted">#7a8694</color>
+    <color name="text_muted2">#4a5568</color>
+
+    <color name="red">#dc5050</color>
+
+    <!-- Material required -->
+    <color name="purple_200">#c9a84c</color>
+    <color name="purple_500">#c9a84c</color>
+    <color name="purple_700">#a8852e</color>
+    <color name="teal_200">#3dba68</color>
+    <color name="teal_700">#2d9050</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+</resources>
