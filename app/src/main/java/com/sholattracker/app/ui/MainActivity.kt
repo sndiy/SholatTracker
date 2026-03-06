@@ -1,3 +1,4 @@
+//MainActivity
 package com.sholattracker.app.ui
 
 import android.Manifest
