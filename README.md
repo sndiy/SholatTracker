@@ -81,25 +81,3 @@ Setelah app terinstall:
 
 Widget otomatis update saat kamu centang sholat di dalam app.
 
----
-
-## Struktur Project
-```
-app/src/main/
-├── java/com/sholattracker/app/
-│   ├── ui/
-│   │   ├── MainActivity.kt          ← Halaman utama
-│   │   ├── SholatAdapter.kt         ← List sholat
-│   │   ├── HistoryActivity.kt       ← Riwayat
-│   │   └── NotificationSettingsActivity.kt ← Atur pengingat
-│   ├── data/
-│   │   └── SholatRepository.kt      ← Data & storage
-│   ├── notification/
-│   │   └── NotificationScheduler.kt ← Alarm & notifikasi
-│   └── pdf/
-│       └── PdfExporter.kt           ← Generate PDF
-└── res/
-    ├── layout/                      ← Semua layout XML
-    ├── values/colors.xml            ← Tema warna gelap
-    └── drawable/                    ← Icon & shapes
-```
