@@ -11,8 +11,8 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sholattracker.app.R
 import com.sholattracker.app.data.MOTIVATIONAL_QUOTES
 import com.sholattracker.app.data.SHOLAT_LIST
@@ -23,6 +23,7 @@ import com.sholattracker.app.pdf.PdfExporter
 import com.sholattracker.app.widget.WidgetUpdateReceiver
 import java.time.LocalDate
 import java.time.LocalTime
+import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
@@ -30,7 +31,8 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private lateinit var repo: SholatRepository
-    private lateinit var adapter: SholatAdapter
+    private lateinit var sholatAdapter: SholatAdapter
+    private lateinit var calendarAdapter: CalendarAdapter
     private lateinit var scheduler: NotificationScheduler
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -42,12 +44,12 @@ class MainActivity : AppCompatActivity() {
         repo = SholatRepository(this)
         scheduler = NotificationScheduler(this)
 
-        setupRecyclerView()
+        setupSholatList()
+        setupCalendar()
         requestNotificationPermission()
         scheduler.scheduleAll(repo.getNotifTimes())
         render()
 
-        binding.btnReset.setOnClickListener { confirmReset() }
         binding.btnExportPdf.setOnClickListener { exportPdf() }
         binding.btnHistory.setOnClickListener {
             startActivity(Intent(this, HistoryActivity::class.java))
@@ -59,13 +61,20 @@ class MainActivity : AppCompatActivity() {
         render()
     }
 
-    private fun setupRecyclerView() {
-        adapter = SholatAdapter { sholatId ->
+    private fun setupSholatList() {
+        sholatAdapter = SholatAdapter { sholatId ->
             repo.toggle(repo.todayKey(), sholatId)
             render()
+            WidgetUpdateReceiver.send(this)
         }
         binding.rvSholat.layoutManager = LinearLayoutManager(this)
-        binding.rvSholat.adapter = adapter
+        binding.rvSholat.adapter = sholatAdapter
+    }
+
+    private fun setupCalendar() {
+        calendarAdapter = CalendarAdapter()
+        binding.rvCalendar.layoutManager = GridLayoutManager(this, 7)
+        binding.rvCalendar.adapter = calendarAdapter
     }
 
     private fun render() {
@@ -78,11 +87,22 @@ class MainActivity : AppCompatActivity() {
             DateTimeFormatter.ofPattern("EEEE, d MMMM yyyy", Locale("id", "ID"))
         )
 
-        // Progress
+        // ── Progress bar motivasi ──
         binding.progressBar.progress = record.count
-        binding.tvProgress.text = "${record.count} / 5 sholat"
+        val (progressLabel, progressColor) = when (record.count) {
+            0 -> Pair("Mulai hari dengan sholat Subuh ✨", R.color.text_muted)
+            1 -> Pair("Bagus! Jangan berhenti di sini 💪", R.color.text_muted)
+            2 -> Pair("Setengah perjalanan, teruskan! 🌙", R.color.text_muted)
+            3 -> Pair("3 dari 5 — kamu hebat! ⭐", R.color.gold)
+            4 -> Pair("Tinggal satu lagi, hampir sempurna! 🔥", R.color.gold)
+            5 -> Pair("Alhamdulillah, sempurna! Semoga diterima ﷻ", R.color.green)
+            else -> Pair("", R.color.text_muted)
+        }
+        binding.tvProgress.text = "${record.count}/5"
+        binding.tvProgressMotivasi.text = progressLabel
+        binding.tvProgressMotivasi.setTextColor(ContextCompat.getColor(this, progressColor))
 
-        // Streak
+        // ── Streak ──
         if (streak > 0) {
             binding.tvStreak.text = "🔥 $streak hari berturut-turut sholat lengkap"
             binding.cardStreak.visibility = android.view.View.VISIBLE
@@ -90,9 +110,9 @@ class MainActivity : AppCompatActivity() {
             binding.cardStreak.visibility = android.view.View.GONE
         }
 
-        // Adapter
+        // ── Sholat list ──
         val nextId = getNextSholatId(record.completed)
-        adapter.submitList(SHOLAT_LIST.map { sholat ->
+        sholatAdapter.submitList(SHOLAT_LIST.map { sholat ->
             SholatItem(
                 sholat = sholat,
                 isChecked = record.completed.contains(sholat.id),
@@ -100,23 +120,58 @@ class MainActivity : AppCompatActivity() {
             )
         })
 
-        // Quote
+        // ── Quote ──
         if (record.isComplete) {
-            binding.tvQuote.text =
-                "Alhamdulillah, semua sholat hari ini selesai.\nSemoga diterima Allah ﷻ"
-            binding.cardQuote.setCardBackgroundColor(
-                ContextCompat.getColor(this, R.color.gold_dim)
-            )
+            binding.tvQuote.text = "Alhamdulillah, semua sholat hari ini selesai.\nSemoga diterima Allah ﷻ"
+            binding.cardQuote.setCardBackgroundColor(ContextCompat.getColor(this, R.color.gold_dim))
         } else {
-            binding.tvQuote.text =
-                MOTIVATIONAL_QUOTES[LocalDate.now().dayOfMonth % MOTIVATIONAL_QUOTES.size]
-            binding.cardQuote.setCardBackgroundColor(
-                ContextCompat.getColor(this, R.color.surface2)
-            )
+            binding.tvQuote.text = MOTIVATIONAL_QUOTES[LocalDate.now().dayOfMonth % MOTIVATIONAL_QUOTES.size]
+            binding.cardQuote.setCardBackgroundColor(ContextCompat.getColor(this, R.color.surface2))
         }
 
-        // Update homescreen widget
+        // ── Kalender bulan ini ──
+        renderCalendar()
+
         WidgetUpdateReceiver.send(this)
+    }
+
+    private fun renderCalendar() {
+        val now = LocalDate.now()
+        val installDate = repo.getInstallDate()
+        val yearMonth = YearMonth.of(now.year, now.month)
+        val firstDayOfWeek = yearMonth.atDay(1).dayOfWeek.value % 7
+        val daysInMonth = yearMonth.lengthOfMonth()
+
+        binding.tvCalendarMonth.text = now.format(
+            DateTimeFormatter.ofPattern("MMMM yyyy", Locale("id", "ID"))
+        ).replaceFirstChar { it.uppercase() }
+
+        val days = mutableListOf<CalendarDay>()
+
+        repeat(firstDayOfWeek) {
+            days.add(CalendarDay(null, DayStatus.EMPTY))
+        }
+
+        for (d in 1..daysInMonth) {
+            val date = yearMonth.atDay(d)
+            val isToday = date == now
+            val status = when {
+                date > now -> DayStatus.FUTURE
+                date < installDate -> DayStatus.NONE   // sebelum install = kosong
+                else -> {
+                    val rec = repo.getRecord(date.toString())
+                    when {
+                        rec.count == 0 && date < now -> DayStatus.MISSED
+                        rec.count == 5 -> DayStatus.COMPLETE
+                        rec.count in 1..4 -> DayStatus.PARTIAL
+                        else -> DayStatus.NONE
+                    }
+                }
+            }
+            days.add(CalendarDay(date, status, isToday))
+        }
+
+        calendarAdapter.submitDays(days)
     }
 
     private fun getNextSholatId(completed: Set<String>): String? {
@@ -135,18 +190,6 @@ class MainActivity : AppCompatActivity() {
         return SHOLAT_LIST.firstOrNull { !completed.contains(it.id) }?.id
     }
 
-    private fun confirmReset() {
-        MaterialAlertDialogBuilder(this)
-            .setTitle("Reset Hari Ini?")
-            .setMessage("Semua centang hari ini akan dihapus.")
-            .setPositiveButton("Reset") { _, _ ->
-                repo.resetDay(repo.todayKey())
-                render()
-            }
-            .setNegativeButton("Batal", null)
-            .show()
-    }
-
     private fun exportPdf() {
         try {
             val file = PdfExporter(this, repo).export()
@@ -163,9 +206,7 @@ class MainActivity : AppCompatActivity() {
                 ) != PackageManager.PERMISSION_GRANTED
             ) {
                 ActivityCompat.requestPermissions(
-                    this,
-                    arrayOf(Manifest.permission.POST_NOTIFICATIONS),
-                    100
+                    this, arrayOf(Manifest.permission.POST_NOTIFICATIONS), 100
                 )
             }
         }

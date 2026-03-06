@@ -11,7 +11,6 @@
         android:layout_height="wrap_content"
         android:background="@color/bg"
         app:elevation="0dp">
-
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
@@ -19,7 +18,6 @@
             android:background="@color/bg"
             app:titleTextColor="@color/text_primary"
             app:title="@string/app_name" />
-
     </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.core.widget.NestedScrollView
@@ -35,22 +33,77 @@
             android:orientation="vertical"
             android:paddingBottom="24dp">
 
-            <!-- Date -->
+            <!-- Tanggal -->
             <TextView
                 android:id="@+id/tvDate"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="@color/text_primary"
-                android:textSize="14sp"
-                android:fontFamily="sans-serif"
-                android:layout_marginBottom="4dp" />
+                android:textColor="@color/text_muted"
+                android:textSize="12sp"
+                android:layout_marginBottom="16dp" />
 
-            <!-- Arabic Header Card -->
+            <!-- Arabic header -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:layout_marginBottom="12dp"
+                android:layout_marginBottom="14dp"
+                app:cardBackgroundColor="@color/surface"
+                app:cardCornerRadius="20dp"
+                app:strokeColor="@color/border"
+                app:strokeWidth="1dp"
+                app:cardElevation="0dp">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="18dp"
+                    android:gravity="center">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="الصَّلَاةُ خَيْرٌ مِنَ النَّوْمِ"
+                        android:textColor="@color/gold_soft"
+                        android:textSize="24sp"
+                        android:fontFamily="serif"
+                        android:gravity="center" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="SHOLAT LEBIH BAIK DARI TIDUR"
+                        android:textColor="@color/text_muted2"
+                        android:textSize="9sp"
+                        android:letterSpacing="0.12"
+                        android:layout_marginTop="4dp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Streak card -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardStreak"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="14dp"
+                android:visibility="gone"
+                app:cardBackgroundColor="@color/gold_dim"
+                app:cardCornerRadius="14dp"
+                app:strokeColor="@color/gold_border"
+                app:strokeWidth="1dp"
+                app:cardElevation="0dp">
+                <TextView
+                    android:id="@+id/tvStreak"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:padding="12dp"
+                    android:textColor="@color/gold_soft"
+                    android:textSize="13sp"
+                    android:layout_gravity="center" />
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- ── PROGRESS BAR MOTIVASI ── -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="14dp"
                 app:cardBackgroundColor="@color/surface"
                 app:cardCornerRadius="20dp"
                 app:strokeColor="@color/border"
@@ -61,121 +114,79 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="20dp"
-                    android:gravity="center">
+                    android:padding="16dp">
 
-                    <TextView
-                        android:layout_width="wrap_content"
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="الصَّلَاةُ خَيْرٌ مِنَ النَّوْمِ"
-                        android:textColor="@color/gold_soft"
-                        android:textSize="26sp"
-                        android:fontFamily="serif"
-                        android:gravity="center" />
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="10dp">
 
-                    <TextView
-                        android:layout_width="wrap_content"
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="PROGRESS HARI INI"
+                            android:textColor="@color/text_muted2"
+                            android:textSize="9sp"
+                            android:letterSpacing="0.1" />
+
+                        <TextView
+                            android:id="@+id/tvProgress"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textColor="@color/gold_soft"
+                            android:textSize="18sp"
+                            android:textStyle="bold" />
+
+                    </LinearLayout>
+
+                    <!-- Progress bar dengan segmen -->
+                    <com.google.android.material.progressindicator.LinearProgressIndicator
+                        android:id="@+id/progressBar"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="SHOLAT LEBIH BAIK DARI TIDUR"
-                        android:textColor="@color/text_muted"
-                        android:textSize="9sp"
-                        android:letterSpacing="0.12"
-                        android:layout_marginTop="6dp"
-                        android:gravity="center" />
+                        android:max="5"
+                        app:trackColor="@color/surface3"
+                        app:indicatorColor="@color/green"
+                        app:trackCornerRadius="6dp"
+                        app:trackThickness="10dp"
+                        android:layout_marginBottom="10dp" />
 
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Streak Card -->
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/cardStreak"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                android:visibility="gone"
-                app:cardBackgroundColor="@color/gold_dim"
-                app:cardCornerRadius="14dp"
-                app:strokeColor="@color/gold_border"
-                app:strokeWidth="1dp"
-                app:cardElevation="0dp">
-
-                <TextView
-                    android:id="@+id/tvStreak"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:padding="12dp"
-                    android:textColor="@color/gold_soft"
-                    android:textSize="13sp"
-                    android:fontFamily="sans-serif"
-                    android:layout_gravity="center" />
-
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Progress Section -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_marginBottom="12dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:layout_marginBottom="8dp">
-
+                    <!-- Teks motivasi -->
                     <TextView
-                        android:layout_width="0dp"
+                        android:id="@+id/tvProgressMotivasi"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="PROGRESS HARI INI"
-                        android:textColor="@color/text_muted"
-                        android:textSize="10sp"
-                        android:letterSpacing="0.1" />
-
-                    <TextView
-                        android:id="@+id/tvProgress"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textColor="@color/gold_soft"
                         android:textSize="12sp"
-                        android:fontFamily="sans-serif" />
+                        android:textColor="@color/text_muted"
+                        android:gravity="center"
+                        android:fontFamily="serif"
+                        android:textStyle="italic" />
 
                 </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
 
-                <com.google.android.material.progressindicator.LinearProgressIndicator
-                    android:id="@+id/progressBar"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:max="5"
-                    app:trackColor="@color/surface3"
-                    app:indicatorColor="@color/green"
-                    app:trackCornerRadius="4dp"
-                    app:trackThickness="6dp" />
-
-            </LinearLayout>
-
-            <!-- Sholat List -->
+            <!-- Sholat list -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rvSholat"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:nestedScrollingEnabled="false"
-                android:layout_marginBottom="12dp" />
+                android:layout_marginBottom="14dp" />
 
-            <!-- Quote Card -->
+            <!-- Quote card -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardQuote"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
+                android:layout_marginBottom="14dp"
                 app:cardBackgroundColor="@color/surface2"
                 app:cardCornerRadius="14dp"
                 app:strokeColor="@color/border"
                 app:strokeWidth="1dp"
                 app:cardElevation="0dp">
-
                 <TextView
                     android:id="@+id/tvQuote"
                     android:layout_width="match_parent"
@@ -187,31 +198,119 @@
                     android:fontFamily="serif"
                     android:textStyle="italic"
                     android:lineSpacingMultiplier="1.5" />
-
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Buttons -->
+            <!-- ── KALENDER STREAK ── -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="14dp"
+                app:cardBackgroundColor="@color/surface"
+                app:cardCornerRadius="20dp"
+                app:strokeColor="@color/border"
+                app:strokeWidth="1dp"
+                app:cardElevation="0dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <!-- Header kalender -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="12dp">
+
+                        <TextView
+                            android:id="@+id/tvCalendarMonth"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:textColor="@color/gold_soft"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+
+                        <!-- Legend -->
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical">
+
+                            <View android:layout_width="7dp" android:layout_height="7dp"
+                                android:background="@drawable/cal_dot_green"
+                                android:layout_marginEnd="3dp" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                                android:text="Lengkap" android:textColor="@color/text_muted2" android:textSize="9sp"
+                                android:layout_marginEnd="8dp" />
+
+                            <View android:layout_width="7dp" android:layout_height="7dp"
+                                android:background="@drawable/cal_dot_gray"
+                                android:layout_marginEnd="3dp" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                                android:text="Sebagian" android:textColor="@color/text_muted2" android:textSize="9sp"
+                                android:layout_marginEnd="8dp" />
+
+                            <View android:layout_width="7dp" android:layout_height="7dp"
+                                android:background="@drawable/cal_dot_red"
+                                android:layout_marginEnd="3dp" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                                android:text="Terlewat" android:textColor="@color/text_muted2" android:textSize="9sp" />
+
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <!-- Header hari (Min Sen Sel Rab Kam Jum Sab) -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginBottom="4dp">
+
+                        <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                            android:layout_weight="1" android:gravity="center"
+                            android:text="Min" android:textColor="@color/text_muted2" android:textSize="10sp" />
+                        <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                            android:layout_weight="1" android:gravity="center"
+                            android:text="Sen" android:textColor="@color/text_muted2" android:textSize="10sp" />
+                        <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                            android:layout_weight="1" android:gravity="center"
+                            android:text="Sel" android:textColor="@color/text_muted2" android:textSize="10sp" />
+                        <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                            android:layout_weight="1" android:gravity="center"
+                            android:text="Rab" android:textColor="@color/text_muted2" android:textSize="10sp" />
+                        <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                            android:layout_weight="1" android:gravity="center"
+                            android:text="Kam" android:textColor="@color/text_muted2" android:textSize="10sp" />
+                        <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                            android:layout_weight="1" android:gravity="center"
+                            android:text="Jum" android:textColor="@color/gold_soft" android:textSize="10sp" />
+                        <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                            android:layout_weight="1" android:gravity="center"
+                            android:text="Sab" android:textColor="@color/text_muted2" android:textSize="10sp" />
+
+                    </LinearLayout>
+
+                    <!-- Grid kalender -->
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rvCalendar"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:nestedScrollingEnabled="false" />
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Tombol -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:weightSum="3"
-                android:gravity="center_vertical">
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnReset"
-                    android:layout_width="0dp"
-                    android:layout_height="48dp"
-                    android:layout_weight="1"
-                    android:layout_marginEnd="8dp"
-                    android:text="Reset"
-                    android:textSize="13sp"
-                    app:backgroundTint="@color/surface2"
-                    app:strokeColor="@color/border2"
-                    app:strokeWidth="1dp"
-                    app:cornerRadius="12dp"
-                    android:textColor="@color/text_muted"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+                android:weightSum="2">
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnExportPdf"
@@ -219,7 +318,7 @@
                     android:layout_height="48dp"
                     android:layout_weight="1"
                     android:layout_marginEnd="8dp"
-                    android:text="PDF"
+                    android:text="Export PDF"
                     android:textSize="13sp"
                     app:backgroundTint="@color/gold"
                     app:cornerRadius="12dp"

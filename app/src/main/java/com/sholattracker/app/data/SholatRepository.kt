@@ -60,6 +60,18 @@ class SholatRepository(context: Context) {
 
     private val fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 
+    init {
+        // Simpan tanggal pertama kali app dibuka
+        if (!prefs.contains("install_date")) {
+            prefs.edit().putString("install_date", LocalDate.now().format(fmt)).apply()
+        }
+    }
+
+    fun getInstallDate(): LocalDate {
+        val raw = prefs.getString("install_date", null)
+        return if (raw != null) LocalDate.parse(raw, fmt) else LocalDate.now()
+    }
+
     fun todayKey(): String = LocalDate.now().format(fmt)
 
     // ── Sholat Data ──
