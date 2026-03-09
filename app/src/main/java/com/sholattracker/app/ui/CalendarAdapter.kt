@@ -6,7 +6,6 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.sholattracker.app.R
-import com.sholattracker.app.data.DayRecord
 import java.time.LocalDate
 
 enum class DayStatus { NONE, MISSED, PARTIAL, COMPLETE, FUTURE, EMPTY }
@@ -17,7 +16,9 @@ data class CalendarDay(
     val isToday: Boolean = false
 )
 
-class CalendarAdapter : RecyclerView.Adapter<CalendarAdapter.VH>() {
+class CalendarAdapter(
+    private val onDayClick: (CalendarDay, View) -> Unit = { _, _ -> }
+) : RecyclerView.Adapter<CalendarAdapter.VH>() {
 
     private var days = listOf<CalendarDay>()
 
@@ -26,25 +27,28 @@ class CalendarAdapter : RecyclerView.Adapter<CalendarAdapter.VH>() {
         notifyDataSetChanged()
     }
 
-    inner class VH(val view: View) : RecyclerView.ViewHolder(view) {
+    class VH(val view: View) : RecyclerView.ViewHolder(view) {
         val tvDay: TextView = view.findViewById(R.id.tvCalDay)
         val dot: View = view.findViewById(R.id.calDot)
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = VH(
-        LayoutInflater.from(parent.context).inflate(R.layout.item_calendar_day, parent, false)
-    )
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
+        val v = LayoutInflater.from(parent.context)
+            .inflate(R.layout.item_calendar_day, parent, false)
+        return VH(v)
+    }
 
-    override fun getItemCount() = days.size
+    override fun getItemCount(): Int = days.size
 
     override fun onBindViewHolder(holder: VH, position: Int) {
         val item = days[position]
         val ctx = holder.view.context
 
-        if (item.date == null) {
+        if (item.date == null || item.status == DayStatus.EMPTY) {
             holder.tvDay.text = ""
             holder.dot.visibility = View.INVISIBLE
             holder.view.background = null
+            holder.view.setOnClickListener(null)
             return
         }
 
@@ -87,6 +91,12 @@ class CalendarAdapter : RecyclerView.Adapter<CalendarAdapter.VH>() {
                 holder.dot.visibility = View.INVISIBLE
                 holder.view.background = null
             }
+        }
+
+        if (item.status != DayStatus.FUTURE && item.status != DayStatus.EMPTY && item.status != DayStatus.NONE) {
+            holder.view.setOnClickListener { onDayClick(item, holder.view) }
+        } else {
+            holder.view.setOnClickListener(null)
         }
     }
 }

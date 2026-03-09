@@ -1,4 +1,3 @@
-//MainActivity
 package com.sholattracker.app.ui
 
 import android.Manifest
@@ -12,6 +11,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import android.graphics.drawable.ColorDrawable
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.sholattracker.app.R
@@ -73,7 +73,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupCalendar() {
-        calendarAdapter = CalendarAdapter()
+        calendarAdapter = CalendarAdapter { day, anchor ->
+            showTooltip(day, anchor)
+        }
         binding.rvCalendar.layoutManager = GridLayoutManager(this, 7)
         binding.rvCalendar.adapter = calendarAdapter
     }
@@ -189,6 +191,54 @@ class MainActivity : AppCompatActivity() {
             if ((times[s.id] ?: continue) >= now) return s.id
         }
         return SHOLAT_LIST.firstOrNull { !completed.contains(it.id) }?.id
+    }
+
+    private var activeTooltip: android.widget.PopupWindow? = null
+
+    private fun showTooltip(day: CalendarDay, anchor: android.view.View) {
+        val date = day.date ?: return
+
+        activeTooltip?.dismiss()
+
+        val dateStr = date.format(DateTimeFormatter.ofPattern("d MMM", Locale("id", "ID")))
+        val (statusText, statusColor) = when (day.status) {
+            DayStatus.COMPLETE -> Pair("Lengkap 5/5", R.color.green)
+            DayStatus.PARTIAL  -> {
+                val rec = repo.getRecord(date.toString())
+                Pair("Sebagian ${rec.count}/5", R.color.gold)
+            }
+            DayStatus.MISSED   -> Pair("Terlewat 0/5", R.color.red)
+            else               -> Pair("Belum ada data", R.color.text_muted)
+        }
+
+        val tooltipView = layoutInflater.inflate(R.layout.tooltip_calendar, null)
+        tooltipView.findViewById<android.widget.TextView>(R.id.tvTooltipDate).text = dateStr
+        tooltipView.findViewById<android.widget.TextView>(R.id.tvTooltipStatus).apply {
+            text = statusText
+            setTextColor(ContextCompat.getColor(this@MainActivity, statusColor))
+        }
+
+        val popup = android.widget.PopupWindow(
+            tooltipView,
+            android.view.ViewGroup.LayoutParams.WRAP_CONTENT,
+            android.view.ViewGroup.LayoutParams.WRAP_CONTENT,
+            false
+        ).apply {
+            isOutsideTouchable = true
+            setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+        }
+
+        tooltipView.measure(
+            android.view.View.MeasureSpec.UNSPECIFIED,
+            android.view.View.MeasureSpec.UNSPECIFIED
+        )
+        val xOff = -(tooltipView.measuredWidth / 2) + (anchor.width / 2)
+        val yOff = -(tooltipView.measuredHeight) - anchor.height - 4
+
+        popup.showAsDropDown(anchor, xOff, yOff)
+        activeTooltip = popup
+
+        anchor.postDelayed({ popup.dismiss() }, 2000)
     }
 
     private fun exportPdf() {
