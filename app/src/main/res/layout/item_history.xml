@@ -14,39 +14,66 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="14dp"
-        android:gravity="center_vertical">
+        android:orientation="vertical"
+        android:padding="14dp">
 
-        <TextView
-            android:id="@+id/tvDate"
-            android:layout_width="0dp"
+        <!-- Baris atas: tanggal, dot, count -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:textColor="@color/text_primary"
-            android:textSize="13sp" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
 
-        <!-- 5 dot indicators -->
-        <View android:id="@+id/dot1" android:layout_width="10dp" android:layout_height="10dp"
-            android:layout_marginEnd="5dp" android:background="@drawable/dot_empty"/>
-        <View android:id="@+id/dot2" android:layout_width="10dp" android:layout_height="10dp"
-            android:layout_marginEnd="5dp" android:background="@drawable/dot_empty"/>
-        <View android:id="@+id/dot3" android:layout_width="10dp" android:layout_height="10dp"
-            android:layout_marginEnd="5dp" android:background="@drawable/dot_empty"/>
-        <View android:id="@+id/dot4" android:layout_width="10dp" android:layout_height="10dp"
-            android:layout_marginEnd="5dp" android:background="@drawable/dot_empty"/>
-        <View android:id="@+id/dot5" android:layout_width="10dp" android:layout_height="10dp"
-            android:layout_marginEnd="10dp" android:background="@drawable/dot_empty"/>
+            <TextView
+                android:id="@+id/tvDate"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textColor="@color/text_primary"
+                android:textSize="13sp" />
 
+            <View android:id="@+id/dot1" android:layout_width="10dp" android:layout_height="10dp"
+                android:layout_marginEnd="5dp" android:background="@drawable/dot_empty"/>
+            <View android:id="@+id/dot2" android:layout_width="10dp" android:layout_height="10dp"
+                android:layout_marginEnd="5dp" android:background="@drawable/dot_empty"/>
+            <View android:id="@+id/dot3" android:layout_width="10dp" android:layout_height="10dp"
+                android:layout_marginEnd="5dp" android:background="@drawable/dot_empty"/>
+            <View android:id="@+id/dot4" android:layout_width="10dp" android:layout_height="10dp"
+                android:layout_marginEnd="5dp" android:background="@drawable/dot_empty"/>
+            <View android:id="@+id/dot5" android:layout_width="10dp" android:layout_height="10dp"
+                android:layout_marginEnd="10dp" android:background="@drawable/dot_empty"/>
+
+            <TextView
+                android:id="@+id/tvCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/text_muted"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:minWidth="30dp"
+                android:gravity="end" />
+
+        </LinearLayout>
+
+        <!-- Hint ketuk -->
         <TextView
-            android:id="@+id/tvCount"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="@color/text_muted"
-            android:textSize="13sp"
-            android:textStyle="bold"
-            android:minWidth="30dp"
-            android:gravity="end" />
+            android:text="Ketuk untuk lihat riwayat centang"
+            android:textColor="@color/text_muted2"
+            android:textSize="9sp"
+            android:layout_marginTop="4dp" />
+
+        <!-- Log centang (expand/collapse) -->
+        <LinearLayout
+            android:id="@+id/logContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone"
+            android:layout_marginTop="8dp"
+            android:paddingTop="8dp">
+        </LinearLayout>
 
     </LinearLayout>
 

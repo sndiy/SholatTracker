@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:paddingStart="12dp"
+    android:paddingEnd="12dp"
+    android:paddingTop="7dp"
+    android:paddingBottom="7dp">
+
+    <!-- Tanggal -->
+    <TextView
+        android:id="@+id/tvTanggal"
+        android:layout_width="32dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:textSize="11sp"
+        android:textStyle="bold"
+        android:textColor="@color/gold_soft" />
+
+    <!-- Subuh -->
+    <TextView
+        android:id="@+id/tvFajr"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:textSize="10sp"
+        android:textColor="@color/text_muted" />
+
+    <!-- Dzuhur -->
+    <TextView
+        android:id="@+id/tvDhuhr"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:textSize="10sp"
+        android:textColor="@color/text_muted" />
+
+    <!-- Ashar -->
+    <TextView
+        android:id="@+id/tvAsr"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:textSize="10sp"
+        android:textColor="@color/text_muted" />
+
+    <!-- Maghrib -->
+    <TextView
+        android:id="@+id/tvMaghrib"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:textSize="10sp"
+        android:textColor="@color/text_muted" />
+
+    <!-- Isya -->
+    <TextView
+        android:id="@+id/tvIsha"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:textSize="10sp"
+        android:textColor="@color/text_muted" />
+
+</LinearLayout>

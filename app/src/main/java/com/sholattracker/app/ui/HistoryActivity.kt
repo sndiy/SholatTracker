@@ -4,12 +4,16 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.sholattracker.app.R
+import com.sholattracker.app.data.CheckLog
 import com.sholattracker.app.data.DayRecord
 import com.sholattracker.app.data.SHOLAT_LIST
 import com.sholattracker.app.data.SholatRepository
@@ -34,7 +38,7 @@ class HistoryActivity : AppCompatActivity() {
 
         repo = SholatRepository(this)
 
-        val adapter = HistoryAdapter()
+        val adapter = HistoryAdapter(repo)
         binding.rvHistory.layoutManager = LinearLayoutManager(this)
         binding.rvHistory.adapter = adapter
 
@@ -46,42 +50,111 @@ class HistoryActivity : AppCompatActivity() {
             adapter.submitList(records)
         }
 
-        // Overall stats
         val totalDays = records.size
         val completeDays = records.count { it.isComplete }
         val totalSholat = records.sumOf { it.count }
         binding.tvStats.text = "$completeDays hari lengkap dari $totalDays hari · $totalSholat sholat total"
     }
 
-    override fun onSupportNavigateUp(): Boolean {
-        finish(); return true
-    }
+    override fun onSupportNavigateUp(): Boolean { finish(); return true }
 }
 
-class HistoryAdapter : ListAdapter<DayRecord, HistoryAdapter.VH>(Diff()) {
+class HistoryAdapter(
+    private val repo: SholatRepository
+) : ListAdapter<DayRecord, HistoryAdapter.VH>(Diff()) {
 
     private val dateFmt = DateTimeFormatter.ofPattern("EEE, d MMM yyyy", Locale("id", "ID"))
+    private val expandedDates = mutableSetOf<String>()
 
     inner class VH(private val b: ItemHistoryBinding) : RecyclerView.ViewHolder(b.root) {
         fun bind(record: DayRecord) {
             val date = LocalDate.parse(record.date)
             b.tvDate.text = date.format(dateFmt)
             b.tvCount.text = "${record.count}/5"
-
             b.tvCount.setTextColor(
                 b.root.context.getColor(
                     if (record.isComplete) R.color.gold else R.color.text_secondary
                 )
             )
 
-            // Dot indicators per sholat
             val dots = listOf(b.dot1, b.dot2, b.dot3, b.dot4, b.dot5)
             SHOLAT_LIST.forEachIndexed { i, sholat ->
-                val filled = record.completed.contains(sholat.id)
                 dots[i].setBackgroundResource(
-                    if (filled) R.drawable.dot_filled else R.drawable.dot_empty
+                    if (record.completed.contains(sholat.id)) R.drawable.dot_filled
+                    else R.drawable.dot_empty
                 )
             }
+
+            // Log container
+            val logContainer = b.root.findViewById<LinearLayout>(R.id.logContainer)
+            val isExpanded = expandedDates.contains(record.date)
+            logContainer.visibility = if (isExpanded) View.VISIBLE else View.GONE
+
+            if (isExpanded) {
+                renderLogs(logContainer, record)
+            }
+
+            b.root.setOnClickListener {
+                if (expandedDates.contains(record.date)) {
+                    expandedDates.remove(record.date)
+                    logContainer.visibility = View.GONE
+                } else {
+                    expandedDates.add(record.date)
+                    logContainer.visibility = View.VISIBLE
+                    renderLogs(logContainer, record)
+                }
+            }
+        }
+
+        private fun renderLogs(container: LinearLayout, record: DayRecord) {
+            container.removeAllViews()
+            val ctx = container.context
+            val logs = repo.getLogsForDate(record.date)
+
+            if (logs.isEmpty()) {
+                // Tidak ada log tapi ada record — tampilkan dari timestamps
+                SHOLAT_LIST.filter { record.completed.contains(it.id) }.forEach { sholat ->
+                    val ts = record.timestamps[sholat.id] ?: "-"
+                    addLogRow(container, ctx, sholat.name, ts, true)
+                }
+            } else {
+                logs.forEach { log ->
+                    addLogRow(container, ctx, log.sholatName, log.time, log.isChecked)
+                }
+            }
+        }
+
+        private fun addLogRow(container: LinearLayout, ctx: android.content.Context, sholatName: String, time: String, isChecked: Boolean) {
+            val row = LinearLayout(ctx).apply {
+                orientation = LinearLayout.HORIZONTAL
+                setPadding(0, 6, 0, 6)
+            }
+
+            val icon = TextView(ctx).apply {
+                text = if (isChecked) "✓" else "✗"
+                setTextColor(ctx.getColor(if (isChecked) R.color.green else R.color.red))
+                textSize = 12f
+                layoutParams = LinearLayout.LayoutParams(48, LinearLayout.LayoutParams.WRAP_CONTENT)
+            }
+
+            val tvName = TextView(ctx).apply {
+                text = sholatName
+                setTextColor(ctx.getColor(R.color.text_primary))
+                textSize = 12f
+                layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+            }
+
+            val tvTime = TextView(ctx).apply {
+                text = time
+                setTextColor(ctx.getColor(R.color.text_muted))
+                textSize = 11f
+                gravity = android.view.Gravity.END
+            }
+
+            row.addView(icon)
+            row.addView(tvName)
+            row.addView(tvTime)
+            container.addView(row)
         }
     }
 

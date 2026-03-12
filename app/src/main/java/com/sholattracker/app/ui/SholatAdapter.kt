@@ -13,7 +13,8 @@ import com.sholattracker.app.databinding.ItemSholatBinding
 data class SholatItem(
     val sholat: Sholat,
     val isChecked: Boolean,
-    val isNext: Boolean
+    val isNext: Boolean,
+    val displayTime: String = sholat.defaultTime
 )
 
 class SholatAdapter(
@@ -26,7 +27,7 @@ class SholatAdapter(
         fun bind(item: SholatItem) {
             binding.tvName.text = item.sholat.name
             binding.tvArabic.text = item.sholat.arabicName
-            binding.tvTime.text = item.sholat.defaultTime
+            binding.tvTime.text = item.displayTime
 
             // Checkbox state
             binding.cbSholat.isChecked = item.isChecked

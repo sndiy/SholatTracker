@@ -32,8 +32,16 @@ class AlarmReceiver : BroadcastReceiver() {
                 val sholatId = intent.getStringExtra(EXTRA_SHOLAT_ID) ?: return
                 val sholat = SHOLAT_LIST.find { it.id == sholatId } ?: return
                 showNotification(context, sholat.name, sholatId)
+
+                // Jadwalkan ulang untuk besok — pakai jadwal per tanggal jika ada
                 val repo = SholatRepository(context)
-                repo.getNotifTimes().find { it.sholatId == sholatId && it.enabled }?.let {
+                val tomorrow = java.time.LocalDate.now().plusDays(1).toString()
+                val times = if (repo.hasScheduleForDate(tomorrow)) {
+                    repo.getNotifTimesForDate(tomorrow)
+                } else {
+                    repo.getNotifTimes()
+                }
+                times.find { it.sholatId == sholatId && it.enabled }?.let {
                     NotificationScheduler(context).schedule(it)
                 }
             }

@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widgetRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:background="@drawable/widget_background"
+    android:paddingStart="12dp"
+    android:paddingEnd="12dp"
+    android:paddingTop="8dp"
+    android:paddingBottom="8dp">
+
+    <!-- Angka progress di kiri -->
+    <TextView
+        android:id="@+id/tvWidgetProgress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="0/5"
+        android:textColor="#e2c97e"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:minWidth="40dp" />
+
+    <!-- Divider -->
+    <View
+        android:layout_width="1dp"
+        android:layout_height="match_parent"
+        android:background="#2d3748"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp" />
+
+    <!-- 5 nama sholat horizontal -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="horizontal"
+        android:gravity="center">
+
+        <TextView android:id="@+id/tvSholat1"
+            android:layout_width="0dp" android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Sub" android:gravity="center"
+            android:textColor="#9aa5b4" android:textSize="10sp" />
+
+        <TextView android:id="@+id/tvSholat2"
+            android:layout_width="0dp" android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Dzu" android:gravity="center"
+            android:textColor="#9aa5b4" android:textSize="10sp" />
+
+        <TextView android:id="@+id/tvSholat3"
+            android:layout_width="0dp" android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Ash" android:gravity="center"
+            android:textColor="#9aa5b4" android:textSize="10sp" />
+
+        <TextView android:id="@+id/tvSholat4"
+            android:layout_width="0dp" android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Mag" android:gravity="center"
+            android:textColor="#9aa5b4" android:textSize="10sp" />
+
+        <TextView android:id="@+id/tvSholat5"
+            android:layout_width="0dp" android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Isy" android:gravity="center"
+            android:textColor="#9aa5b4" android:textSize="10sp" />
+
+    </LinearLayout>
+
+</LinearLayout>

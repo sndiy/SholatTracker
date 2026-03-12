@@ -35,6 +35,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var sholatAdapter: SholatAdapter
     private lateinit var calendarAdapter: CalendarAdapter
     private lateinit var scheduler: NotificationScheduler
+    private var activeTooltip: android.widget.PopupWindow? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -115,11 +116,15 @@ class MainActivity : AppCompatActivity() {
 
         // ── Sholat list ──
         val nextId = getNextSholatId(record.completed)
+        val notifTimes = repo.getNotifTimesForDate(today).associateBy { it.sholatId }
         sholatAdapter.submitList(SHOLAT_LIST.map { sholat ->
             SholatItem(
                 sholat = sholat,
                 isChecked = record.completed.contains(sholat.id),
-                isNext = sholat.id == nextId
+                isNext = sholat.id == nextId,
+                displayTime = notifTimes[sholat.id]?.let {
+                    String.format("%02d:%02d", it.hour, it.minute)
+                } ?: sholat.defaultTime
             )
         })
 
@@ -193,29 +198,44 @@ class MainActivity : AppCompatActivity() {
         return SHOLAT_LIST.firstOrNull { !completed.contains(it.id) }?.id
     }
 
-    private var activeTooltip: android.widget.PopupWindow? = null
-
     private fun showTooltip(day: CalendarDay, anchor: android.view.View) {
         val date = day.date ?: return
 
         activeTooltip?.dismiss()
 
         val dateStr = date.format(DateTimeFormatter.ofPattern("d MMM", Locale("id", "ID")))
+        val rec = repo.getRecord(date.toString())
+
         val (statusText, statusColor) = when (day.status) {
             DayStatus.COMPLETE -> Pair("Lengkap 5/5", R.color.green)
-            DayStatus.PARTIAL  -> {
-                val rec = repo.getRecord(date.toString())
-                Pair("Sebagian ${rec.count}/5", R.color.gold)
-            }
+            DayStatus.PARTIAL  -> Pair("Sebagian ${rec.count}/5", R.color.gold)
             DayStatus.MISSED   -> Pair("Terlewat 0/5", R.color.red)
             else               -> Pair("Belum ada data", R.color.text_muted)
         }
+
+        // Aktivitas terakhir dari timestamps
+        val lastEntry = rec.lastCheckedEntry()
+        val lastActivityText = if (lastEntry != null) {
+            val sholatName = SHOLAT_LIST.find { it.id == lastEntry.first }?.name ?: lastEntry.first
+            "Terakhir: $sholatName · ${lastEntry.second}"
+        } else null
 
         val tooltipView = layoutInflater.inflate(R.layout.tooltip_calendar, null)
         tooltipView.findViewById<android.widget.TextView>(R.id.tvTooltipDate).text = dateStr
         tooltipView.findViewById<android.widget.TextView>(R.id.tvTooltipStatus).apply {
             text = statusText
             setTextColor(ContextCompat.getColor(this@MainActivity, statusColor))
+        }
+
+        // Tampilkan aktivitas terakhir jika ada
+        val tvLastActivity = tooltipView.findViewById<android.widget.TextView?>(R.id.tvTooltipLastActivity)
+        if (tvLastActivity != null) {
+            if (lastActivityText != null) {
+                tvLastActivity.text = lastActivityText
+                tvLastActivity.visibility = android.view.View.VISIBLE
+            } else {
+                tvLastActivity.visibility = android.view.View.GONE
+            }
         }
 
         val popup = android.widget.PopupWindow(
@@ -225,7 +245,7 @@ class MainActivity : AppCompatActivity() {
             false
         ).apply {
             isOutsideTouchable = true
-            setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+            setBackgroundDrawable(ColorDrawable(android.graphics.Color.TRANSPARENT))
         }
 
         tooltipView.measure(
@@ -237,8 +257,7 @@ class MainActivity : AppCompatActivity() {
 
         popup.showAsDropDown(anchor, xOff, yOff)
         activeTooltip = popup
-
-        anchor.postDelayed({ popup.dismiss() }, 2000)
+        anchor.postDelayed({ popup.dismiss() }, 3000)
     }
 
     private fun exportPdf() {
