@@ -3,6 +3,7 @@ package com.sholattracker.app.data
 import android.content.Context
 import android.content.SharedPreferences
 import org.json.JSONObject
+import java.net.URL
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
@@ -32,14 +33,6 @@ data class DayRecord(
             ?.let { Pair(it.key, it.value) }
     }
 }
-
-data class CheckLog(
-    val date: String,
-    val sholatId: String,
-    val sholatName: String,
-    val time: String,   // "HH:mm:ss"
-    val isChecked: Boolean
-)
 
 data class NotifTime(
     val sholatId: String,
@@ -75,9 +68,6 @@ class SholatRepository(context: Context) {
 
     private val notifPrefs: SharedPreferences =
         context.getSharedPreferences("sholat_notif", Context.MODE_PRIVATE)
-
-    private val logPrefs: SharedPreferences =
-        context.getSharedPreferences("sholat_log", Context.MODE_PRIVATE)
 
     private val fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd")
     private val timeFmt = DateTimeFormatter.ofPattern("HH:mm:ss")
@@ -118,27 +108,20 @@ class SholatRepository(context: Context) {
         val record = getRecord(date)
         val newCompleted = record.completed.toMutableSet()
         val newTimestamps = record.timestamps.toMutableMap()
-        val now = LocalTime.now().format(timeFmt)
 
         val isChecking = !newCompleted.contains(sholatId)
         if (isChecking) {
             newCompleted.add(sholatId)
-            newTimestamps[sholatId] = now
+            // Hanya simpan timestamp pertama kali centang, tidak overwrite
+            if (!newTimestamps.containsKey(sholatId)) {
+                newTimestamps[sholatId] = LocalTime.now().format(timeFmt)
+            }
         } else {
             newCompleted.remove(sholatId)
-            newTimestamps.remove(sholatId)
+            // Timestamp tetap disimpan meski un-centang (sebagai bukti pernah diceklis)
         }
 
         saveRecord(DayRecord(date, newCompleted, newTimestamps))
-
-        // Simpan ke log aktivitas
-        appendLog(CheckLog(
-            date = date,
-            sholatId = sholatId,
-            sholatName = SHOLAT_LIST.find { it.id == sholatId }?.name ?: sholatId,
-            time = now,
-            isChecked = isChecking
-        ))
     }
 
     fun resetDay(date: String) {
@@ -152,44 +135,6 @@ class SholatRepository(context: Context) {
             record.timestamps[s.id]?.let { json.put("${s.id}_ts", it) }
         }
         prefs.edit().putString(record.date, json.toString()).apply()
-    }
-
-    // ── Log aktivitas centang ──
-
-    private fun appendLog(log: CheckLog) {
-        val key = "${log.date}_log"
-        val existing = logPrefs.getString(key, null)
-        val arr = if (existing != null) {
-            try { org.json.JSONArray(existing) } catch (e: Exception) { org.json.JSONArray() }
-        } else org.json.JSONArray()
-
-        val entry = JSONObject().apply {
-            put("sholatId", log.sholatId)
-            put("sholatName", log.sholatName)
-            put("time", log.time)
-            put("isChecked", log.isChecked)
-        }
-        arr.put(entry)
-        logPrefs.edit().putString(key, arr.toString()).apply()
-    }
-
-    fun getLogsForDate(date: String): List<CheckLog> {
-        val raw = logPrefs.getString("${date}_log", null) ?: return emptyList()
-        return try {
-            val arr = org.json.JSONArray(raw)
-            (0 until arr.length()).map { i ->
-                val obj = arr.getJSONObject(i)
-                CheckLog(
-                    date = date,
-                    sholatId = obj.getString("sholatId"),
-                    sholatName = obj.getString("sholatName"),
-                    time = obj.getString("time"),
-                    isChecked = obj.getBoolean("isChecked")
-                )
-            }.sortedByDescending { it.time }
-        } catch (e: Exception) {
-            emptyList()
-        }
     }
 
     fun getAllRecords(): List<DayRecord> {
@@ -255,5 +200,67 @@ class SholatRepository(context: Context) {
 
     fun hasScheduleForDate(date: String): Boolean {
         return notifPrefs.contains("${date}_subuh_hour")
+    }
+
+    // ── Auto-fetch jadwal dari API ──
+
+    fun wasScheduleFetchedToday(): Boolean {
+        val today = LocalDate.now().toString()
+        return prefs.getString("last_fetch_date", null) == today
+    }
+
+    fun markFetchedToday() {
+        prefs.edit().putString("last_fetch_date", LocalDate.now().toString()).apply()
+    }
+
+    // Panggil dari coroutine IO thread
+    fun fetchAndSaveMonthlySchedule(): Boolean {
+        return try {
+            val today = LocalDate.now()
+            val month = today.monthValue
+            val year = today.year
+            val url = "https://api.aladhan.com/v1/calendarByCity?city=Surabaya&country=Indonesia&method=20&month=$month&year=$year"
+            val json = URL(url).readText()
+
+            val root = org.json.JSONObject(json)
+            val data = root.getJSONArray("data")
+
+            fun parseTime(raw: String): Pair<Int, Int> {
+                val clean = raw.substringBefore(" ").trim().split(":")
+                return Pair(clean[0].toInt(), clean[1].toInt())
+            }
+
+            val editor = notifPrefs.edit()
+            for (i in 0 until data.length()) {
+                val entry = data.getJSONObject(i)
+                val day = entry.getJSONObject("date").getJSONObject("gregorian")
+                    .getString("day").toInt()
+                val dateStr = "%04d-%02d-%02d".format(year, month, day)
+                val timings = entry.getJSONObject("timings")
+
+                val sholatKeys = listOf(
+                    "subuh" to "Fajr",
+                    "dzuhur" to "Dhuhr",
+                    "ashar" to "Asr",
+                    "maghrib" to "Maghrib",
+                    "isya" to "Isha"
+                )
+                sholatKeys.forEach { (id, key) ->
+                    val (h, m) = parseTime(timings.getString(key))
+                    editor.putInt("${dateStr}_${id}_hour", h)
+                    editor.putInt("${dateStr}_${id}_min", m)
+                    // Update default juga untuk hari ini
+                    if (day == today.dayOfMonth) {
+                        editor.putInt("${id}_hour", h)
+                        editor.putInt("${id}_min", m)
+                    }
+                }
+            }
+            editor.apply()
+            markFetchedToday()
+            true
+        } catch (e: Exception) {
+            false
+        }
     }
 }

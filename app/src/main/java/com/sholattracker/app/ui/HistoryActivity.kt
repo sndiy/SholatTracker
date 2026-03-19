@@ -13,7 +13,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.sholattracker.app.R
-import com.sholattracker.app.data.CheckLog
 import com.sholattracker.app.data.DayRecord
 import com.sholattracker.app.data.SHOLAT_LIST
 import com.sholattracker.app.data.SholatRepository
@@ -109,25 +108,31 @@ class HistoryAdapter(
         private fun renderLogs(container: LinearLayout, record: DayRecord) {
             container.removeAllViews()
             val ctx = container.context
-            val logs = repo.getLogsForDate(record.date)
+            val today = LocalDate.now().toString()
+            val isPastDay = record.date < today
 
-            if (logs.isEmpty()) {
-                // Tidak ada log tapi ada record — tampilkan dari timestamps
-                SHOLAT_LIST.filter { record.completed.contains(it.id) }.forEach { sholat ->
-                    val ts = record.timestamps[sholat.id] ?: "-"
-                    addLogRow(container, ctx, sholat.name, ts, true)
-                }
-            } else {
-                logs.forEach { log ->
-                    addLogRow(container, ctx, log.sholatName, log.time, log.isChecked)
+            SHOLAT_LIST.forEach { sholat ->
+                val isChecked = record.completed.contains(sholat.id)
+                val timestamp = record.timestamps[sholat.id]
+
+                when {
+                    isChecked -> {
+                        // Pernah diceklis — tampilkan dengan jam
+                        addLogRow(container, ctx, sholat.name, timestamp ?: "", true)
+                    }
+                    isPastDay -> {
+                        // Hari sudah lewat dan tidak diceklis — missed tanpa jam
+                        addLogRow(container, ctx, sholat.name, null, false)
+                    }
+                    // Hari ini belum diceklis — tidak ditampilkan
                 }
             }
         }
 
-        private fun addLogRow(container: LinearLayout, ctx: android.content.Context, sholatName: String, time: String, isChecked: Boolean) {
+        private fun addLogRow(container: LinearLayout, ctx: android.content.Context, sholatName: String, time: String?, isChecked: Boolean) {
             val row = LinearLayout(ctx).apply {
                 orientation = LinearLayout.HORIZONTAL
-                setPadding(0, 6, 0, 6)
+                setPadding(0, 5, 0, 5)
             }
 
             val icon = TextView(ctx).apply {
@@ -139,13 +144,13 @@ class HistoryAdapter(
 
             val tvName = TextView(ctx).apply {
                 text = sholatName
-                setTextColor(ctx.getColor(R.color.text_primary))
+                setTextColor(ctx.getColor(if (isChecked) R.color.text_primary else R.color.text_muted2))
                 textSize = 12f
                 layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
             }
 
             val tvTime = TextView(ctx).apply {
-                text = time
+                text = if (!time.isNullOrEmpty()) time else ""
                 setTextColor(ctx.getColor(R.color.text_muted))
                 textSize = 11f
                 gravity = android.view.Gravity.END

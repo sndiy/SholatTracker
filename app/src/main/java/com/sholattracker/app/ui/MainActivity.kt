@@ -9,6 +9,10 @@ import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import android.graphics.drawable.ColorDrawable
@@ -61,6 +65,22 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         render()
+        // Auto-refresh jadwal jika belum fetch hari ini
+        if (!repo.wasScheduleFetchedToday()) {
+            fetchJadwalSilent()
+        }
+    }
+
+    private fun fetchJadwalSilent() {
+        lifecycleScope.launch {
+            val success = withContext(Dispatchers.IO) {
+                repo.fetchAndSaveMonthlySchedule()
+            }
+            if (success) {
+                scheduler.scheduleAll(repo.getNotifTimesForDate(repo.todayKey()))
+                render()
+            }
+        }
     }
 
     private fun setupSholatList() {
@@ -117,14 +137,20 @@ class MainActivity : AppCompatActivity() {
         // ── Sholat list ──
         val nextId = getNextSholatId(record.completed)
         val notifTimes = repo.getNotifTimesForDate(today).associateBy { it.sholatId }
+        val nowTime = LocalTime.now()
         sholatAdapter.submitList(SHOLAT_LIST.map { sholat ->
+            val nt = notifTimes[sholat.id]
+            val sholatTime = nt?.let { LocalTime.of(it.hour, it.minute) }
+            val isDisabled = !record.completed.contains(sholat.id) &&
+                    sholatTime != null && nowTime.isBefore(sholatTime)
             SholatItem(
                 sholat = sholat,
                 isChecked = record.completed.contains(sholat.id),
                 isNext = sholat.id == nextId,
-                displayTime = notifTimes[sholat.id]?.let {
+                displayTime = nt?.let {
                     String.format("%02d:%02d", it.hour, it.minute)
-                } ?: sholat.defaultTime
+                } ?: sholat.defaultTime,
+                isDisabled = isDisabled
             )
         })
 
@@ -290,6 +316,22 @@ class MainActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
         R.id.action_notif_settings -> {
             startActivity(Intent(this, NotificationSettingsActivity::class.java))
+            true
+        }
+        R.id.action_refresh -> {
+            lifecycleScope.launch {
+                Toast.makeText(this@MainActivity, "Memperbarui jadwal...", Toast.LENGTH_SHORT).show()
+                val success = withContext(Dispatchers.IO) {
+                    repo.fetchAndSaveMonthlySchedule()
+                }
+                if (success) {
+                    scheduler.scheduleAll(repo.getNotifTimesForDate(repo.todayKey()))
+                    render()
+                    Toast.makeText(this@MainActivity, "Jadwal berhasil diperbarui!", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(this@MainActivity, "Gagal memperbarui, periksa koneksi.", Toast.LENGTH_SHORT).show()
+                }
+            }
             true
         }
         else -> super.onOptionsItemSelected(item)

@@ -14,7 +14,8 @@ data class SholatItem(
     val sholat: Sholat,
     val isChecked: Boolean,
     val isNext: Boolean,
-    val displayTime: String = sholat.defaultTime
+    val displayTime: String = sholat.defaultTime,
+    val isDisabled: Boolean = false
 )
 
 class SholatAdapter(
@@ -29,35 +30,49 @@ class SholatAdapter(
             binding.tvArabic.text = item.sholat.arabicName
             binding.tvTime.text = item.displayTime
 
-            // Checkbox state
             binding.cbSholat.isChecked = item.isChecked
 
-            // Next badge
             binding.chipNext.visibility = if (item.isNext && !item.isChecked)
                 View.VISIBLE else View.GONE
 
-            // Row style
             val ctx = binding.root.context
+
             when {
                 item.isChecked -> {
                     binding.root.setCardBackgroundColor(ctx.getColor(R.color.green_dim))
                     binding.root.strokeColor = ctx.getColor(R.color.green_border)
                     binding.tvName.setTextColor(ctx.getColor(R.color.green_text))
+                    binding.cbSholat.alpha = 1f
+                    binding.root.alpha = 1f
+                }
+                item.isDisabled -> {
+                    binding.root.setCardBackgroundColor(ctx.getColor(R.color.surface2))
+                    binding.root.strokeColor = ctx.getColor(R.color.border)
+                    binding.tvName.setTextColor(ctx.getColor(R.color.text_muted2))
+                    binding.cbSholat.alpha = 0.35f
+                    binding.root.alpha = 0.5f
                 }
                 item.isNext -> {
                     binding.root.setCardBackgroundColor(ctx.getColor(R.color.surface3))
                     binding.root.strokeColor = ctx.getColor(R.color.gold_border)
                     binding.tvName.setTextColor(ctx.getColor(R.color.text_primary))
+                    binding.cbSholat.alpha = 1f
+                    binding.root.alpha = 1f
                 }
                 else -> {
                     binding.root.setCardBackgroundColor(ctx.getColor(R.color.surface2))
                     binding.root.strokeColor = ctx.getColor(R.color.border)
                     binding.tvName.setTextColor(ctx.getColor(R.color.text_primary))
+                    binding.cbSholat.alpha = 1f
+                    binding.root.alpha = 1f
                 }
             }
 
-            binding.root.setOnClickListener { onToggle(item.sholat.id) }
-            binding.cbSholat.setOnClickListener { onToggle(item.sholat.id) }
+            // Disable klik kalau belum waktunya dan belum dicentang
+            val clickable = item.isChecked || !item.isDisabled
+            binding.root.setOnClickListener(if (clickable) {{ onToggle(item.sholat.id) }} else null)
+            binding.cbSholat.setOnClickListener(if (clickable) {{ onToggle(item.sholat.id) }} else null)
+            binding.cbSholat.isClickable = clickable
         }
     }
 
