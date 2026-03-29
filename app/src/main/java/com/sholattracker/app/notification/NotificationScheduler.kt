@@ -7,6 +7,8 @@ import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.media.AudioAttributes
+import android.net.Uri
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import com.sholattracker.app.R
@@ -16,7 +18,7 @@ import com.sholattracker.app.data.SholatRepository
 import com.sholattracker.app.ui.MainActivity
 import java.util.Calendar
 
-const val CHANNEL_ID = "sholat_reminder"
+const val CHANNEL_ID = "sholat_reminder_v2"
 const val EXTRA_SHOLAT_ID = "sholat_id"
 const val ACTION_SHOLAT_ALARM = "com.sholattracker.SHOLAT_ALARM"
 
@@ -55,6 +57,9 @@ class AlarmReceiver : BroadcastReceiver() {
             Intent(context, MainActivity::class.java),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
+        val soundUri = Uri.parse(
+            "android.resource://${context.packageName}/${R.raw.notif_sholat}"
+        )
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle("Waktunya Sholat $sholatName")
@@ -67,12 +72,21 @@ class AlarmReceiver : BroadcastReceiver() {
             .setCategory(NotificationCompat.CATEGORY_REMINDER)
             .setAutoCancel(true)
             .setContentIntent(openIntent)
+            .setSound(soundUri)
             .build()
         val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         nm.notify(sholatId.hashCode(), notification)
     }
 
     private fun createChannel(context: Context) {
+        val soundUri = Uri.parse(
+            "android.resource://${context.packageName}/${R.raw.notif_sholat}"
+        )
+        val audioAttributes = AudioAttributes.Builder()
+            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+            .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+            .build()
+
         val channel = NotificationChannel(
             CHANNEL_ID,
             "Pengingat Sholat",
@@ -80,6 +94,7 @@ class AlarmReceiver : BroadcastReceiver() {
         ).apply {
             description = "Notifikasi pengingat waktu sholat"
             enableVibration(true)
+            setSound(soundUri, audioAttributes)
         }
         val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         nm.createNotificationChannel(channel)
